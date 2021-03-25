@@ -99,17 +99,16 @@ void BufMgr::unPinPage(File* file, const PageId pageNo, const bool dirty)
 void BufMgr::allocPage(File* file, PageId &pageNo, Page*& page) 
 {
 	// alloc empty page in the specified file 
-	Page* newPage = file->allocatePage();
-	page = newPage;
+	Page newPage = file->allocatePage();
 	
 	// call allocBuf() to obtain buffer pool frame
-	allocBuf(clockhand);
+	allocBuf(clockHand);
 	// insert into hashtable
-	hashTable.insert(file, page->page_number(), bufDescTable[clockhand].frameNo);
+	hashTable -> insert(file, page->page_number(), bufDescTable[clockHand].frameNo);
 	// call Set() to set frame properly
-	bufDescTable[clockhand].Set(file, page->page_number());
+	bufDescTable[clockHand].Set(file, page->page_number());
 	pageNo = page->page_number();
-	page = &bufPool[clockhand];
+	page = &bufPool[clockHand];
 
 }
 
