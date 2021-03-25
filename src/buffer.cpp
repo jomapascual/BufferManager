@@ -89,6 +89,19 @@ void BufMgr::allocBuf(FrameId & frame)
 	
 void BufMgr::readPage(File* file, const PageId pageNo, Page*& page)
 {
+	FrameId frameNo;
+	try {
+		hashTable->lookup(file, pageNo, clockHand);
+		bufDescTable[frameNo].refbit = true;
+		bufDescTable[frameNo].pinCnt++;
+		page = &bufPool[frameNo];
+	} catch (HashNotFoundException noHash) {
+		allocBuf(frameNo);
+		bufPool[frameNo] = file->readPage(pageNo);
+		hashTable->insert(file, pageNo, frameNo);
+		bufDescTable[frameNo].Set(file, pageNo);
+		page = &bufPool[frameNo];
+	}
 }
 
 
@@ -98,17 +111,19 @@ void BufMgr::unPinPage(File* file, const PageId pageNo, const bool dirty)
 
 void BufMgr::allocPage(File* file, PageId &pageNo, Page*& page) 
 {
+	FrameId frameNo;
+
 	// alloc empty page in the specified file 
-	Page newPage = file->allocatePage();
+	Page* newPage = &file->allocatePage();
 	
 	// call allocBuf() to obtain buffer pool frame
-	allocBuf(clockHand);
+	allocBuf(frameNo);
 	// insert into hashtable
-	hashTable -> insert(file, page->page_number(), bufDescTable[clockHand].frameNo);
+	hashTable -> insert(file, newPage->page_number(), frameNo);
 	// call Set() to set frame properly
-	bufDescTable[clockHand].Set(file, page->page_number());
-	pageNo = page->page_number();
-	page = &bufPool[clockHand];
+	bufDescTable[frameNo].Set(file, newPage->page_number());
+	pageNo = newPage->page_number();
+	page = &bufPool[frameNo];
 
 }
 
