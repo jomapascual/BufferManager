@@ -44,16 +44,46 @@ BufMgr::~BufMgr() {
 
 void BufMgr::advanceClock()
 {
-	if(this -> clockHand == this -> numBufs) {
-		this -> clockHand = 0;
-	}
-	else {
-		this -> clockHand++;
-	}
 }
 
 void BufMgr::allocBuf(FrameId & frame) 
 {
+	int checked = 0;
+	while(checked <= numBufs - 1) {
+		advanceClock();
+		if (bufDescTable[clockHand].valid == true) {
+			if (bufDescTable[clockHand].refbit == false) {
+				if (bufDescTable[clockHand].pinCnt == 0) {
+					if (bufDescTable[clockHand].dirty == true) {
+						// flush page to disk
+						bufDescTable[clockHand].file->writePage(bufPool[clockHand]);
+						bufDescTable[clockHand].dirty = false;
+						hashTable->remove(bufDescTable[clockHand].file, bufDescTable[clockHand].pageNo);
+						frame = bufDescTable[clockHand].frameNo;
+						break;
+					}
+					else {
+						hashTable->remove(bufDescTable[clockHand].file, bufDescTable[clockHand].pageNo);
+						frame = bufDescTable[clockHand].frameNo;
+						break;
+					}
+				}
+			}
+			else {
+				bufDescTable[clockHand].refbit == false;
+			}
+		}
+		else {
+			hashTable->remove(bufDescTable[clockHand].file, bufDescTable[clockHand].pageNo);
+			frame = bufDescTable[clockHand].frameNo;
+			break;
+		}
+		checked++;
+	}
+	if (checked > numBufs - 1) {
+		throw BufferExceededException();
+	}
+	bufDescTable[clockHand].Clear();
 }
 
 	
