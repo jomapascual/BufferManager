@@ -44,7 +44,7 @@ BufMgr::~BufMgr() {
 
 void BufMgr::advanceClock()
 {
-	if(this -> clockHand == this -> numBufs) {
+	if(this -> clockHand == this -> numBufs - 1) {
 		this -> clockHand = 0;
 	}
 	else {
@@ -54,6 +54,36 @@ void BufMgr::advanceClock()
 
 void BufMgr::allocBuf(FrameId & frame) 
 {
+	std::uint32_t pincount = 0;
+	while(pincount <= numBufs - 1) {
+		this -> advanceClock(); //Advance Clock Pointer
+		if (bufDescTable[clockHand].valid == false) {
+			return;
+		}
+		else {
+			if (bufDescTable[clockHand].refbit == true) { //Checks if refbit has been set
+				bufDescTable[clockHand].refbit = false;
+				continue;
+			}
+			else {
+				if(bufDescTable[clockHand].pinCnt > 0) { //Checks if Page has been pinned
+					pincount++;
+					continue;
+				}
+				else if(bufDescTable[clockHand].dirty == true) { //Checks Dirty Bit
+					bufDescTable[clockHand].dirty = false;
+					bufDescTable[clockHand].file -> writePage(bufPool[clockHand]);
+				}
+				//bufDescTable[clockHand].Set(bufDescTable[clockHand].file, bufDescTable[clockHand].pageNo);
+				hashTable->remove(bufDescTable[clockHand].file, bufDescTable[clockHand].pageNo);
+				return;
+			}
+		}
+	}
+	if(pincount > numBufs - 1) {
+		throw BufferExceededException();
+	}
+	bufDescTable[clockHand].Clear();
 }
 
 	
