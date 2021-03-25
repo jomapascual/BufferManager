@@ -44,6 +44,12 @@ BufMgr::~BufMgr() {
 
 void BufMgr::advanceClock()
 {
+	if(this -> clockHand == this -> numBufs) {
+		this -> clockHand = 0;
+	}
+	else {
+		this -> clockHand++;
+	}
 }
 
 void BufMgr::allocBuf(FrameId & frame) 
