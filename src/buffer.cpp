@@ -57,25 +57,25 @@ void BufMgr::allocBuf(FrameId & frame)
 	std::uint32_t pincount = 0;
 	while(pincount <= numBufs - 1) {
 		this -> advanceClock(); //Advance Clock Pointer
-		if (bufDescTable[clockHand].valid == false) {
+		if (bufDescTable[frame].valid == false) {
 			return;
 		}
 		else {
-			if (bufDescTable[clockHand].refbit == true) { //Checks if refbit has been set
-				bufDescTable[clockHand].refbit = false;
+			if (bufDescTable[frame].refbit == true) { //Checks if refbit has been set
+				bufDescTable[frame].refbit = false;
 				continue;
 			}
 			else {
-				if(bufDescTable[clockHand].pinCnt > 0) { //Checks if Page has been pinned
+				if(bufDescTable[frame].pinCnt > 0) { //Checks if Page has been pinned
 					pincount++;
 					continue;
 				}
-				else if(bufDescTable[clockHand].dirty == true) { //Checks Dirty Bit
-					bufDescTable[clockHand].dirty = false;
-					bufDescTable[clockHand].file -> writePage(bufPool[clockHand]);
+				else if(bufDescTable[frame].dirty == true) { //Checks Dirty Bit
+					bufDescTable[frame].dirty = false;
+					bufDescTable[frame].file -> writePage(bufPool[frame]);
 				}
 				//bufDescTable[clockHand].Set(bufDescTable[clockHand].file, bufDescTable[clockHand].pageNo);
-				hashTable->remove(bufDescTable[clockHand].file, bufDescTable[clockHand].pageNo);
+				hashTable->remove(bufDescTable[frame].file, bufDescTable[frame].pageNo);
 				return;
 			}
 		}
@@ -83,7 +83,7 @@ void BufMgr::allocBuf(FrameId & frame)
 	if(pincount > numBufs - 1) {
 		throw BufferExceededException();
 	}
-	bufDescTable[clockHand].Clear();
+	bufDescTable[frame].Clear();
 }
 
 	
@@ -98,6 +98,19 @@ void BufMgr::unPinPage(File* file, const PageId pageNo, const bool dirty)
 
 void BufMgr::allocPage(File* file, PageId &pageNo, Page*& page) 
 {
+	// alloc empty page in the specified file 
+	Page* newPage = file->allocatePage();
+	page = newPage;
+	
+	// call allocBuf() to obtain buffer pool frame
+	allocBuf(clockhand);
+	// insert into hashtable
+	hashTable.insert(file, page->page_number(), bufDescTable[clockhand].frameNo);
+	// call Set() to set frame properly
+	bufDescTable[clockhand].Set(file, page->page_number());
+	pageNo = page->page_number();
+	page = &bufPool[clockhand];
+
 }
 
 void BufMgr::flushFile(const File* file) 
