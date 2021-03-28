@@ -45,8 +45,9 @@ BufMgr::~BufMgr() {
 	//FrameId frames [numBufs]; // Array of FrameId's
 	for (FrameId i = 0; i < numBufs; i++) {
 		if(bufDescTable[i].dirty == true) { // If dirtybit == true, flush the page
-			bufDescTable[i].dirty = false;
-			bufDescTable[i].file -> writePage(bufPool[i]); // Writes the page
+			// bufDescTable[i].dirty = false;
+			// bufDescTable[i].file -> writePage(bufPool[i]); // Writes the page
+			flushFile(bufDescTable[i].file);
 		}
 	}
 	delete [] bufDescTable; // Deallocation
@@ -125,7 +126,7 @@ void BufMgr::allocBuf(FrameId & frame)
  */
 void BufMgr::readPage(File* file, const PageId pageNo, Page*& page)
 {
-	FrameId frameNo;
+	FrameId frameNo = 0;
 	try {
 		hashTable->lookup(file, pageNo, clockHand);
 		bufDescTable[frameNo].refbit = true;
@@ -178,13 +179,15 @@ void BufMgr::unPinPage(File* file, const PageId pageNo, const bool dirty)
  */
 void BufMgr::allocPage(File* file, PageId &pageNo, Page*& page) 
 {
-	FrameId frameNo;
+	FrameId frameNo = 0;
 
 	// alloc empty page in the specified file 
 	Page newPage = file->allocatePage();
 	
 	// call allocBuf() to obtain buffer pool frame
 	allocBuf(frameNo);
+	// after bufPool frame obtained, set page to bufPool frame from allocBuf
+	bufPool[frameNo] = newPage;
 	// insert into hashtable
 	hashTable -> insert(file, newPage.page_number(), frameNo);
 	// call Set() to set frame properly
