@@ -160,12 +160,12 @@ void BufMgr::unPinPage(File* file, const PageId pageNo, const bool dirty)
 	try{
 		hashTable->lookup(file, pageNo, frameNo);
 
-		if (bufDescTable[frameNo].pinCnt == 0) { // Pincount is already 0
-			throw PageNotPinnedException(file->filename(), pageNo, frameNo);
-		}
-
 		if (dirty) { // If dirty == true, sets the dirty bit
 			bufDescTable[frameNo].dirty = true;
+		}
+
+		if (bufDescTable[frameNo].pinCnt == 0) { // Pincount is already 0
+			throw PageNotPinnedException(file->filename(), pageNo, frameNo);
 		}
 
 		bufDescTable[frameNo].pinCnt--; // Decrements the pincount
