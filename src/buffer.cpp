@@ -177,8 +177,45 @@ void BufMgr::allocPage(File* file, PageId &pageNo, Page*& page)
 
 }
 
+/**
+ * Should scan bufTable for pages belonging to the file. For each page encountered it should:
+	(a) if the page is dirty, call file->writePage() to flush the page to disk and then set the dirty bit for the page to false, (b) remove the page from the hashtable (whether the page is clean or dirty) and (c) invoke the Clear() method of BufDesc for the page frame.
+	Throws PagePinnedException if some page of the file is pinned. Throws BadBuffer-
+	Exception if an invalid page belonging to the file is encountered.
+ */
 void BufMgr::flushFile(const File* file) 
 {
+	// scan/iterate through pages in bufTable belonging to file
+	for(std::uint32_t i = 0; i < numBufs; i++)
+	{
+		// page belongs to file and is valid
+		if(bufDescTable[i].file == file && bufDescTable[i].valid)
+		{
+			// if page dity, call writePage() to flush to disk & set dirty bit to false
+			if(bufDescTable[i].dirty)
+			{
+				bufDescTable[i].file->writePage(bufPool[bufDescTable[i].frameNo]);
+				bufDescTable[i].dirty = false;
+			}
+
+			// if page of file is pinned, throw exception
+			if(bufDescTable[i].pinCnt != 0)
+			{
+				throw PageNotPinnedException(bufDescTable[i].file->filename(), bufDescTable[i].pageNo, bufDescTable[i].frameNo);
+			}
+
+			// remove page from hashtable
+			hashTable->remove(file, bufDescTable[i].pageNo);
+			// invoke clear() method for page frame
+			bufDescTable[i].Clear();
+		}
+
+		//page belongs to file but it is not valid, throw exception
+		if(bufDescTable[i].file == file && bufDescTable[i].valid == false)
+		{
+			throw BadBufferException(bufDescTable[i].frameNo, bufDescTable[i].dirty, bufDescTable[i].valid, bufDescTable[i].refbit);
+		}
+	}
 }
 
 /**
