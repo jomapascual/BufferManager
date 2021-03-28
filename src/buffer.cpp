@@ -38,8 +38,20 @@ BufMgr::BufMgr(std::uint32_t bufs)
   clockHand = bufs - 1;
 }
 
-
+/**
+ * Flushes out all dirty pages and deallocates the buffer pool and the BufDesc table.
+ */
 BufMgr::~BufMgr() {
+	//FrameId frames [numBufs]; // Array of FrameId's
+	for (FrameId i = 0; i < numBufs; i++) {
+		if(bufDescTable[i].dirty == true) { // If dirtybit == true, flush the page
+			bufDescTable[i].dirty = false;
+			bufDescTable[i].file -> writePage(bufPool[i]); // Writes the page
+		}
+	}
+	delete [] bufDescTable; // Deallocation
+	delete [] bufPool;
+	delete [] hashTable;
 }
 
 void BufMgr::advanceClock()
@@ -128,7 +140,12 @@ void BufMgr::readPage(File* file, const PageId pageNo, Page*& page)
 	}
 }
 
-
+/**
+ * Decrements the pinCnt of the frame containing (file, PageNo) and, 
+ if dirty == true, sets the dirty bit. 
+ Throws PAGENOTPINNED if the pin count is already 0. 
+ Does nothing if page is not found in the hash table lookup.
+ */
 void BufMgr::unPinPage(File* file, const PageId pageNo, const bool dirty) 
 {
 	FrameId frameNo;
@@ -177,6 +194,14 @@ void BufMgr::allocPage(File* file, PageId &pageNo, Page*& page)
 
 }
 
+/**
+ * Should scan bufTable for pages belonging to the file. For each page encountered it should:
+(a) if the page is dirty, call file->writePage() to flush the page to disk and then set the dirty bit for the page to false, 
+(b) remove the page from the hashtable (whether the page is clean or dirty) and 
+(c) invoke the Clear() method of BufDesc for the page frame.
+Throws PagePinnedException if some page of the file is pinned. 
+Throws BadBufferException if an invalid page belonging to the file is encountered.
+ */
 void BufMgr::flushFile(const File* file) 
 {
 }
