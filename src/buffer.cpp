@@ -84,6 +84,10 @@ void BufMgr::allocBuf(FrameId & frame)
 		throw BufferExceededException();
 	}
 	bufDescTable[frame].Clear();
+
+	//frame = clockHand;
+	//or 
+	frame = bufDescTable[clockHand].frameNo;
 }
 
 	
@@ -99,16 +103,19 @@ void BufMgr::unPinPage(File* file, const PageId pageNo, const bool dirty)
 void BufMgr::allocPage(File* file, PageId &pageNo, Page*& page) 
 {
 	// alloc empty page in the specified file 
-	Page newPage = file->allocatePage();
-	
+	Page* newPage = &file->allocatePage();
+	FrameId frameNo = 0;
+
 	// call allocBuf() to obtain buffer pool frame
-	allocBuf(clockHand);
+	allocBuf(frameNo);
+	// get frame from buffer pool
+	// bufPool[frameNo] = newPage;
 	// insert into hashtable
-	hashTable -> insert(file, page->page_number(), bufDescTable[clockHand].frameNo);
+	hashTable -> insert(file, newPage->page_number(), frameNo);
 	// call Set() to set frame properly
-	bufDescTable[clockHand].Set(file, page->page_number());
-	pageNo = page->page_number();
-	page = &bufPool[clockHand];
+	bufDescTable[clockHand].Set(file, newPage->page_number());
+	pageNo = newPage->page_number();
+	page = &bufPool[frameNo];
 
 }
 
@@ -118,6 +125,19 @@ void BufMgr::flushFile(const File* file)
 
 void BufMgr::disposePage(File* file, const PageId PageNo)
 {
+	FrameId frameNum;
+	try {
+		// make sure page to be deleted is allocated in buffer pool
+		hashtable->lookup(file, PageNo, frameNum);
+		// clear entry from description table for the frame
+		bufDescTable[frameNum].Clear();
+		// remove correspoding entry from hashtable
+		hashTable->remove(file, PageNo);
+	} catch (HashNotFoundException e) {
+		// this means page to be removed was never alloc as a frame in buffer pool
+	}
+	// delete page from file
+	file->deletePage(PageNo);
 }
 
 void BufMgr::printSelf(void) 
