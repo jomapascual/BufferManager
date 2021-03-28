@@ -133,11 +133,18 @@ void BufMgr::readPage(File* file, const PageId pageNo, Page*& page)
 		bufDescTable[frameNo].pinCnt++;
 		page = &bufPool[frameNo];
 	} catch (HashNotFoundException noHash) {
-		allocBuf(frameNo);
+		try {
+			allocBuf(frameNo);
 		bufPool[frameNo] = file->readPage(pageNo);
 		hashTable->insert(file, pageNo, frameNo);
 		bufDescTable[frameNo].Set(file, pageNo);
 		page = &bufPool[frameNo];
+		} catch(BufferExceededException) {
+
+		}
+		
+	} catch(...) {
+		// Dont do anything
 	}
 }
 
