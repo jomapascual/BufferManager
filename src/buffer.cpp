@@ -181,15 +181,15 @@ void BufMgr::allocPage(File* file, PageId &pageNo, Page*& page)
 	FrameId frameNo;
 
 	// alloc empty page in the specified file 
-	Page* newPage = &file->allocatePage();
+	Page newPage = file->allocatePage();
 	
 	// call allocBuf() to obtain buffer pool frame
 	allocBuf(frameNo);
 	// insert into hashtable
-	hashTable -> insert(file, newPage->page_number(), frameNo);
+	hashTable -> insert(file, newPage.page_number(), frameNo);
 	// call Set() to set frame properly
-	bufDescTable[frameNo].Set(file, newPage->page_number());
-	pageNo = newPage->page_number();
+	bufDescTable[frameNo].Set(file, newPage.page_number());
+	pageNo = newPage.page_number();
 	page = &bufPool[frameNo];
 
 }

@@ -103,17 +103,6 @@ int main()
 	testBufMgr();
 }
 
-void testAdvanceClock()
-{
-
-	BufMgr* bufMgr1 = new BufMgr(5);
-
-	bufMgr1 -> advanceClock();
-	bufMgr1.advanceClock();
-
-}
-
-
 void testBufMgr()
 {
 	// create buffer manager
@@ -332,3 +321,8 @@ void test6()
 
 	bufMgr->flushFile(file1ptr);
 }
+
+
+// possible tests:
+
+//
