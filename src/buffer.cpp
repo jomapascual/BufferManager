@@ -38,8 +38,20 @@ BufMgr::BufMgr(std::uint32_t bufs)
   clockHand = bufs - 1;
 }
 
-
+/**
+ * Flushes out all dirty pages and deallocates the buffer pool and the BufDesc table.
+ */
 BufMgr::~BufMgr() {
+	//FrameId frames [numBufs]; // Array of FrameId's
+	for (FrameId i = 0; i < numBufs; i++) {
+		if(bufDescTable[i].dirty == true) { // If dirtybit == true, flush the page
+			bufDescTable[i].dirty = false;
+			bufDescTable[i].file -> writePage(bufPool[i]); // Writes the page
+		}
+	}
+	delete [] bufDescTable; // Deallocation
+	delete [] bufPool;
+	delete [] hashTable;
 }
 
 void BufMgr::advanceClock()
@@ -128,7 +140,12 @@ void BufMgr::readPage(File* file, const PageId pageNo, Page*& page)
 	}
 }
 
-
+/**
+ * Decrements the pinCnt of the frame containing (file, PageNo) and, 
+ if dirty == true, sets the dirty bit. 
+ Throws PAGENOTPINNED if the pin count is already 0. 
+ Does nothing if page is not found in the hash table lookup.
+ */
 void BufMgr::unPinPage(File* file, const PageId pageNo, const bool dirty) 
 {
 	FrameId frameNo;
