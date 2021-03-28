@@ -111,6 +111,24 @@ void BufMgr::readPage(File* file, const PageId pageNo, Page*& page)
 
 void BufMgr::unPinPage(File* file, const PageId pageNo, const bool dirty) 
 {
+	FrameId frameNo;
+	try{
+		hashTable->lookup(file, pageNo, frameNo);
+
+		if (dirty) { // If dirty == true, sets the dirty bit
+			bufDescTable[frameNo].dirty = true;
+		}
+
+		if (bufDescTable[frameNo].pinCnt == 0) { // Pincount is already 0
+			throw PageNotPinnedException(file->filename(), pageNo, frameNo);
+		}
+
+		bufDescTable[frameNo].pinCnt--; // Decrements the pincount
+	}
+	catch (...) {
+		// Do nothing for exceptions
+	}
+	
 }
 
 void BufMgr::allocPage(File* file, PageId &pageNo, Page*& page) 
@@ -140,7 +158,7 @@ void BufMgr::disposePage(File* file, const PageId PageNo)
 	FrameId frameNum;
 	try {
 		// make sure page to be deleted is allocated in buffer pool
-		hashtable->lookup(file, PageNo, frameNum);
+		hashTable->lookup(file, PageNo, frameNum);
 		// clear entry from description table for the frame
 		bufDescTable[frameNum].Clear();
 		// remove correspoding entry from hashtable
