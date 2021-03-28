@@ -52,6 +52,13 @@ void BufMgr::advanceClock()
 	}
 }
 
+/**
+ * Allocates a free frame using the clock algorithm; if necessary, writing a dirty page back
+	to disk. Throws BufferExceededException if all buffer frames are pinned. This private
+	method will get called by the readPage() and allocPage() methods described below. Make
+	sure that if the buffer frame allocated has a valid page in it, you remove the appropriate
+	entry from the hash table.
+ */
 void BufMgr::allocBuf(FrameId & frame) 
 {
 	std::uint32_t pincount = 0;
@@ -90,7 +97,20 @@ void BufMgr::allocBuf(FrameId & frame)
 	frame = bufDescTable[clockHand].frameNo;
 }
 
-	
+/**
+ * First check whether the page is already in the buffer pool by invoking the lookup() method,
+	which may throw HashNotFoundException when page is not in the buffer pool, on the
+	hashtable to get a frame number. There are two cases to be handled depending on the
+	outcome of the lookup() call:
+ 		Case 1: Page is not in the buffer pool. Call allocBuf() to allocate a buffer frame and
+			then call the method file->readPage() to read the page from disk into the buffer pool
+			frame. Next, insert the page into the hashtable. Finally, invoke Set() on the frame to
+			set it up properly. Set() will leave the pinCnt for the page set to 1. Return a pointer
+			to the frame containing the page via the page parameter.
+ 		Case 2: Page is in the buffer pool. In this case set the appropriate refbit, increment
+			the pinCnt for the page, and then return a pointer to the frame containing the page
+			via the page parameter.
+ */
 void BufMgr::readPage(File* file, const PageId pageNo, Page*& page)
 {
 	FrameId frameNo;
@@ -131,6 +151,14 @@ void BufMgr::unPinPage(File* file, const PageId pageNo, const bool dirty)
 	
 }
 
+/**
+ * The first step in this method is to to allocate an empty page in the specified file by invoking
+	the file->allocatePage() method. This method will return a newly allocated page.
+	Then allocBuf() is called to obtain a buffer pool frame. Next, an entry is inserted into the
+	hash table and Set() is invoked on the frame to set it up properly. The method returns
+	both the page number of the newly allocated page to the caller via the pageNo parameter
+	and a pointer to the buffer frame allocated for the page via the page parameter.
+ */
 void BufMgr::allocPage(File* file, PageId &pageNo, Page*& page) 
 {
 	FrameId frameNo;
@@ -153,6 +181,11 @@ void BufMgr::flushFile(const File* file)
 {
 }
 
+/**
+ * This method deletes a particular page from file. Before deleting the page from file, it
+ 	makes sure that if the page to be deleted is allocated a frame in the buffer pool, that frame
+	is freed and correspondingly entry from hash table is also removed.
+ */
 void BufMgr::disposePage(File* file, const PageId PageNo)
 {
 	FrameId frameNum;
