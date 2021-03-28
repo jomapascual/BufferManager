@@ -77,6 +77,7 @@ void BufMgr::allocBuf(FrameId & frame)
 	std::uint32_t pincount = 0;
 	while(pincount <= numBufs - 1) {
 		this -> advanceClock(); //Advance Clock Pointer
+		frame = clockHand;
 		if (bufDescTable[frame].valid == false) {
 			return;
 		}
@@ -128,7 +129,7 @@ void BufMgr::readPage(File* file, const PageId pageNo, Page*& page)
 {
 	FrameId frameNo = 0;
 	try {
-		hashTable->lookup(file, pageNo, clockHand);
+		hashTable->lookup(file, pageNo, frameNo);
 		bufDescTable[frameNo].refbit = true;
 		bufDescTable[frameNo].pinCnt++;
 		page = &bufPool[frameNo];
@@ -141,8 +142,7 @@ void BufMgr::readPage(File* file, const PageId pageNo, Page*& page)
 		page = &bufPool[frameNo];
 		} catch(BufferExceededException) {
 
-		}
-		
+		}		
 	} catch(...) {
 		// Dont do anything
 	}
