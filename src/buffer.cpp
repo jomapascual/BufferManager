@@ -232,7 +232,7 @@ void BufMgr::flushFile(const File* file)
 			// if page of file is pinned, throw exception
 			if(bufDescTable[i].pinCnt != 0)
 			{
-				throw PageNotPinnedException(bufDescTable[i].file->filename(), bufDescTable[i].pageNo, bufDescTable[i].frameNo);
+				throw PagePinnedException(bufDescTable[i].file->filename(), bufDescTable[i].pageNo, bufDescTable[i].frameNo);
 			}
 
 			// remove page from hashtable
