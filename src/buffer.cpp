@@ -96,7 +96,11 @@ void BufMgr::allocBuf(FrameId & frame)
 					bufDescTable[frame].file -> writePage(bufPool[frame]);
 				}
 				//bufDescTable[clockHand].Set(bufDescTable[clockHand].file, bufDescTable[clockHand].pageNo);
-				hashTable->remove(bufDescTable[frame].file, bufDescTable[frame].pageNo);
+				try{
+					hashTable->remove(bufDescTable[frame].file, bufDescTable[frame].pageNo);
+				} catch(HashNotFoundException e){
+
+				}
 				return;
 			}
 		}
