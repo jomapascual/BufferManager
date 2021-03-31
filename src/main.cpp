@@ -37,6 +37,7 @@ void test4();
 void test5();
 void test6();
 void testBufMgr();
+void test7();
 
 int main() 
 {
@@ -148,6 +149,7 @@ void testBufMgr()
 	test4();
 	test5();
 	test6();
+	test7();
 
 	//Close files before deleting them
 	file1.~File();
@@ -322,7 +324,17 @@ void test6()
 	bufMgr->flushFile(file1ptr);
 }
 
-
-// possible tests:
-
-//
+void test7()
+{
+	// dispose a page that hasn't been created
+	bufMgr->disposePage(file1ptr, pageno1);
+	try {
+		// read disposed page
+		bufMgr->readPage(file1ptr, pageno1, page);
+		PRINT_ERROR("ERROR :: InvalidPageException should have been thrown before execution reaches this point.");
+	}
+	catch (InvalidPageException e)
+	{
+	}
+	std::cout << "Test 7 passed" << "\n";
+}
