@@ -12,6 +12,7 @@
 #include "exceptions/page_not_pinned_exception.h"
 #include "exceptions/page_pinned_exception.h"
 #include "exceptions/buffer_exceeded_exception.h"
+#include "exceptions/hash_not_found_exception.h"
 
 #define PRINT_ERROR(str) \
 { \
@@ -38,6 +39,7 @@ void test5();
 void test6();
 void testBufMgr();
 void test7();
+void test8();
 
 int main() 
 {
@@ -150,6 +152,7 @@ void testBufMgr()
 	test5();
 	test6();
 	test7();
+	test8();
 
 	//Close files before deleting them
 	file1.~File();
@@ -337,4 +340,40 @@ void test7()
 	{
 	}
 	std::cout << "Test 7 passed" << "\n";
+}
+
+void test8()
+{
+	//Allocating pages in a file...
+	for (i = 0; i < num; i++)
+	{
+		bufMgr->allocPage(file1ptr, pid[i], page);
+		sprintf((char*)tmpbuf, "test.1 Page %u %7.1f", pid[i], (float)pid[i]);
+		rid[i] = page->insertRecord(tmpbuf);
+		bufMgr->unPinPage(file1ptr, pid[i], true);
+	}
+
+	//Reading pages back...
+	for (i = 0; i < num; i++)
+	{
+		bufMgr->readPage(file1ptr, pid[i], page);
+		sprintf((char*)&tmpbuf, "test.1 Page %u %7.1f", pid[i], (float)pid[i]);
+		if(strncmp(page->getRecord(rid[i]).c_str(), tmpbuf, strlen(tmpbuf)) != 0)
+		{
+			PRINT_ERROR("ERROR :: CONTENTS DID NOT MATCH");
+		}
+		bufMgr->unPinPage(file1ptr, pid[i], false);
+	}
+
+	// Dispose all pages
+	for (i = 0; i < num; i++)
+	{
+		try {
+			bufMgr->disposePage(file1ptr, pid[i]);
+		} 
+		catch (HashNotFoundException e)
+		{
+		}
+	}
+	std::cout<< "Test 8 passed" << "\n";
 }
