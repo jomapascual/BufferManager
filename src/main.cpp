@@ -1,3 +1,19 @@
+/**
+ * @author See Contributors.txt for code contributors and overview of BadgerDB.
+ *
+ * @section LICENSE
+ * Copyright (c) 2012 Database Group, Computer Sciences Department, University of Wisconsin-Madison.
+ *
+ * 		Names: 					Student IDs:
+ * 	   	- Jose Pascual			- 9078122448
+ *		- Samuel Ong			- 9078422244
+ *		- Samuel Gronseth		- 9077184696
+ *		- Burak Marmara			- 9075650144
+ *
+ * Driver file. Shows how to use File and Page classes. Also contains simple test cases for the Buffer manager.
+ *
+ */
+
 #include <iostream>
 #include <stdlib.h>
 //#include <stdio.h>
@@ -321,8 +337,3 @@ void test6()
 
 	bufMgr->flushFile(file1ptr);
 }
-
-
-// possible tests:
-
-//

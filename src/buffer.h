@@ -3,6 +3,15 @@
  *
  * @section LICENSE
  * Copyright (c) 2012 Database Group, Computer Sciences Department, University of Wisconsin-Madison.
+ *
+ * 		Names: 					Student IDs:
+ * 	   	- Jose Pascual			- 9078122448
+ *		- Samuel Ong			- 9078422244
+ *		- Samuel Gronseth		- 9077184696
+ *		- Burak Marmara			- 9075650144
+ *
+ * Class definitions for the implementation of the buffer manager class, buffer.cpp. Contains the methods to be implemented and the different variables to be used throughout the methods.
+ *
  */
 
 #pragma once
