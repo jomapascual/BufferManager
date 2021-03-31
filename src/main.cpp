@@ -369,25 +369,21 @@ void test8()
 		bufMgr->unPinPage(file1ptr, pid[i], true);
 	}
 
-	//Reading pages back...
-	for (i = 0; i < num; i++)
-	{
-		bufMgr->readPage(file1ptr, pid[i], page);
-		sprintf((char*)&tmpbuf, "test.1 Page %u %7.1f", pid[i], (float)pid[i]);
-		if(strncmp(page->getRecord(rid[i]).c_str(), tmpbuf, strlen(tmpbuf)) != 0)
-		{
-			PRINT_ERROR("ERROR :: CONTENTS DID NOT MATCH");
-		}
-		bufMgr->unPinPage(file1ptr, pid[i], false);
-	}
-
 	// Dispose all pages
 	for (i = 0; i < num; i++)
 	{
 		try {
 			bufMgr->disposePage(file1ptr, pid[i]);
-		} 
-		catch (HashNotFoundException e)
+
+			// Read all pages. Should throw error since pages are gone
+			try {
+			bufMgr->readPage(file1ptr, pid[i], page);
+			PRINT_ERROR("ERROR :: InvalidPageException should have been thrown before execution reaches this point.");
+			} catch (InvalidPageException e)
+			{
+			}
+		
+		} catch (HashNotFoundException e)
 		{
 		}
 	}
