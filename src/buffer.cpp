@@ -66,7 +66,6 @@ BufMgr::BufMgr(std::uint32_t bufs)
  * @return void
  */
 BufMgr::~BufMgr() {
-	//FrameId frames [numBufs]; // Array of FrameId's
 	for (FrameId i = 0; i < numBufs; i++) {
 		if(bufDescTable[i].dirty == true) { // If dirtybit == true, flush the page
 			flushFile(bufDescTable[i].file);
