@@ -4,7 +4,7 @@
  * @section LICENSE
  * Copyright (c) 2012 Database Group, Computer Sciences Department, University of Wisconsin-Madison.
  *
- * 		Names: 					Student IDs:
+ * 		Names: 				Student IDs:
  * 	   	- Jose Pascual			- 9078122448
  *		- Samuel Ong			- 9078422244
  *		- Samuel Gronseth		- 9077184696

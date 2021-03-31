@@ -4,7 +4,7 @@
  * @section LICENSE
  * Copyright (c) 2012 Database Group, Computer Sciences Department, University of Wisconsin-Madison.
  *
- * 		Names: 					Student IDs:
+ * 		Names: 				Student IDs:
  * 	   	- Jose Pascual			- 9078122448
  *		- Samuel Ong			- 9078422244
  *		- Samuel Gronseth		- 9077184696
@@ -69,8 +69,6 @@ BufMgr::~BufMgr() {
 	//FrameId frames [numBufs]; // Array of FrameId's
 	for (FrameId i = 0; i < numBufs; i++) {
 		if(bufDescTable[i].dirty == true) { // If dirtybit == true, flush the page
-			// bufDescTable[i].dirty = false;
-			// bufDescTable[i].file->writePage(bufPool[i]); // Writes the page
 			flushFile(bufDescTable[i].file);
 		}
 	}
